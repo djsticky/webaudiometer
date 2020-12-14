@@ -64,8 +64,6 @@
     <p>Current context time: No context exists.</p>
   </div>
 
-
-
   <script>
   let audioCtx;
 
@@ -92,10 +90,11 @@
   let caldata;
   const url = "./caldata.json";
   
+  // Fetch calibration data from json file
   const getCalData = fetch(url)
     .then(r => r.json())
     .then(data => {
-      console.log('in async');
+
       return data;
     });
 
@@ -107,42 +106,47 @@
       susresBtn.removeAttribute('disabled');
       stopBtn.removeAttribute('disabled');
 
-      // create web audio api context
+      // Create web audio api context
       AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
 
-      // create Oscillator and gain node
+      // Create Oscillator and gain node
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
       let channel = document.getElementById('pan')
       let pannerOptions = { pan: pan.value };
       const panner = new StereoPannerNode(audioCtx, pannerOptions);
 
-      // connect oscillator to gain node to speakers
+      // Connect oscillator to gain node to speakers
 
       oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
 
 
-      // Start oscillator
+      // Setup oscillator
       let freq = document.getElementById('freq').value;
       let selectedVol = document.getElementById('volume').value;
       let vol = leftGainDict[freq] + caldata[selectedVol];
-      console.log(vol)
+      console.log("Selected Frequency: " + freq);
+      console.log("Selected Volume: " + selectedVol);
+      console.log("Current gain setting: " + vol)
+
       oscillator.type = 'sine';
       oscillator.frequency.value = freq;
       gainNode.gain.value = vol;
+
+      // Start oscillator
       oscillator.start(0);
 
 
-      // report the state of the audio context to the
+      // Report the state of the audio context to the
       // console, when it changes
 
       audioCtx.onstatechange = function() {
-        console.log(audioCtx.state);
+        console.log("Context " + audioCtx.state);
       }
     }
 
-    // suspend/resume the audiocontext
+    // Suspend/resume the audiocontext
 
     susresBtn.onclick = function() {
       if(audioCtx.state === 'running') {
@@ -156,7 +160,7 @@
       }
     }
 
-    // close the audiocontext
+    // Close the audiocontext
 
     stopBtn.onclick = function() {
       audioCtx.close().then(function() {
@@ -174,10 +178,6 @@
       timeDisplay.textContent = 'Current context time: No context exists.'
     }
     requestAnimationFrame(displayTime);
-  }
-
-  function calibrateTone(freq, dB) {
-    
   }
 
   displayTime();
