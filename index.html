@@ -1,188 +1,66 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width">
-
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width" />
     <title>AudioContext Tone Generator</title>
 
-    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="" />
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
 
   <body>
-
-  <h1>Tone Generator</h1>
-  <div class="properties">
-    <label for="freq">Frequency</label>
-    <select name="frequency" id="freq">
-      <option value="500">500Hz</option>
-      <option value="1000" selected>1000Hz</option>
-      <option value="2000">2000Hz</option>
-      <option value="3000">3000Hz</option>
-      <option value="4000">4000Hz</option>
-      <option value="6000">6000Hz</option>
-      <option value="8000">8000Hz</option>
-    </select>
-    <label for="panner">Ear</label>
-    <select name="panner" id="pan">
-      <option value="-1" selcted>Left</option>
-      <option value="1">Right</option>
-    </select>
-    <label for="volume">Select dB Level</label>
-    <select name="volume" id="volume">
-      <option value="0">0dB</option>
-      <option value="5">5dB</option>
-      <option value="10">10dB</option>
-      <option value="15" selected>15dB</option>
-      <option value="20">20dB</option>
-      <option value="25">25dB</option>
-      <option value="30">30dB</option>
-      <option value="35">35dB</option>
-      <option value="40">40dB</option>
-      <option value="45">45dB</option>
-      <option value="50">50dB</option>
-      <option value="55">55dB</option>
-      <option value="60">60dB</option>
-      <option value="65">65dB</option>
-      <option value="70">70dB</option>
-      <option value="75">75dB</option>
-      <option value="80">80dB</option>
-      <option value="85">85dB</option>
-      <option value="90">90dB</option>
-      <option value="95">95dB</option>
-    </select>
-  </div>
-  <br>
-  <div class="controls">
-    <button>Create tone</button>
-    <button>Suspend tone</button>
-    <button>Stop tone</button>
-    <p>Current context time: No context exists.</p>
-  </div>
-
-  <script>
-  let audioCtx;
-
-  const startBtn = document.querySelector('button:nth-of-type(1)');
-  const susresBtn = document.querySelector('button:nth-of-type(2)');
-  const stopBtn = document.querySelector('button:nth-of-type(3)');
-
-  const timeDisplay = document.querySelector('p');
-
-  susresBtn.setAttribute('disabled','disabled');
-  stopBtn.setAttribute('disabled','disabled');
-
-
-  let leftGainDict = {
-    500: .012,
-    1000: 0,
-    2000: .9,
-    3000: .065,
-    4000: .11,
-    6000: .045,
-    8000: .31
-  };
-
-  let caldata;
-  const url = "./caldata.json";
-  
-  // Fetch calibration data from json file
-  const getCalData = fetch(url)
-    .then(r => r.json())
-    .then(data => {
-
-      return data;
-    });
-
-  window.onload = async () => {
-    caldata = await getCalData;
-
-    startBtn.onclick = function() {
-      startBtn.setAttribute('disabled','disabled');
-      susresBtn.removeAttribute('disabled');
-      stopBtn.removeAttribute('disabled');
-
-      // Create web audio api context
-      AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-
-      // Create Oscillator and gain node
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      let channel = document.getElementById('pan')
-      let pannerOptions = { pan: pan.value };
-      const panner = new StereoPannerNode(audioCtx, pannerOptions);
-
-      // Connect oscillator to gain node to speakers
-
-      oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
-
-
-      // Setup oscillator
-      let freq = document.getElementById('freq').value;
-      let selectedVol = document.getElementById('volume').value;
-      let vol = leftGainDict[freq] + caldata[selectedVol];
-      console.log("Selected Frequency: " + freq);
-      console.log("Selected Volume: " + selectedVol);
-      console.log("Current gain setting: " + vol)
-
-      oscillator.type = 'sine';
-      oscillator.frequency.value = freq;
-      gainNode.gain.value = vol;
-
-      // Start oscillator
-      oscillator.start(0);
-
-
-      // Report the state of the audio context to the
-      // console, when it changes
-
-      audioCtx.onstatechange = function() {
-        console.log("Context " + audioCtx.state);
-      }
-    }
-
-    // Suspend/resume the audiocontext
-
-    susresBtn.onclick = function() {
-      if(audioCtx.state === 'running') {
-        audioCtx.suspend().then(function() {
-          susresBtn.textContent = 'Resume tone';
-        });
-      } else if(audioCtx.state === 'suspended') {
-        audioCtx.resume().then(function() {
-          susresBtn.textContent = 'Suspend tone';
-        });
-      }
-    }
-
-    // Close the audiocontext
-
-    stopBtn.onclick = function() {
-      audioCtx.close().then(function() {
-        startBtn.removeAttribute('disabled');
-        susresBtn.setAttribute('disabled','disabled');
-        stopBtn.setAttribute('disabled','disabled');
-      });
-    }
-  }
-
-  function displayTime() {
-    if(audioCtx && audioCtx.state !== 'closed') {
-      timeDisplay.textContent = 'Current context time: ' + audioCtx.currentTime.toFixed(3);
-    } else {
-      timeDisplay.textContent = 'Current context time: No context exists.'
-    }
-    requestAnimationFrame(displayTime);
-  }
-
-  displayTime();
-
-
-  </script>
+    <h1>Tone Generator</h1>
+    <div class="properties">
+      <label for="freq">Frequency</label>
+      <select name="frequency" id="freq">
+        <option value="500">500Hz</option>
+        <option value="1000" selected>1000Hz</option>
+        <option value="2000">2000Hz</option>
+        <option value="3000">3000Hz</option>
+        <option value="4000">4000Hz</option>
+        <option value="6000">6000Hz</option>
+        <option value="8000">8000Hz</option>
+      </select>
+      <label for="panner">Ear</label>
+      <select name="panner" id="pan">
+        <option value="-1" selcted>Left</option>
+        <option value="1">Right</option>
+      </select>
+      <label for="volume">Select dB Level</label>
+      <select name="volume" id="volume">
+        <option value="0">0dB</option>
+        <option value="5">5dB</option>
+        <option value="10">10dB</option>
+        <option value="15" selected>15dB</option>
+        <option value="20">20dB</option>
+        <option value="25">25dB</option>
+        <option value="30">30dB</option>
+        <option value="35">35dB</option>
+        <option value="40">40dB</option>
+        <option value="45">45dB</option>
+        <option value="50">50dB</option>
+        <option value="55">55dB</option>
+        <option value="60">60dB</option>
+        <option value="65">65dB</option>
+        <option value="70">70dB</option>
+        <option value="75">75dB</option>
+        <option value="80">80dB</option>
+        <option value="85">85dB</option>
+        <option value="90">90dB</option>
+        <option value="95">95dB</option>
+      </select>
+    </div>
+    <br />
+    <div class="controls">
+      <button>Create tone</button>
+      <button>Suspend tone</button>
+      <button>Stop tone</button>
+      <p>Current context time: No context exists.</p>
+    </div>
+    <script src="./tones.js"></script>
   </body>
 </html>
