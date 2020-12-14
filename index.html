@@ -89,92 +89,82 @@
     8000: .31
   };
 
-  let leftGainAdjust = {
-    0: .00005,
-    5: .00002,
-    10: .000042,
-    15: .000068,
-    20: .000127,
-    25: .000223,
-    30: .000394,
-    35: .000697,
-    40: .00125,
-    45: .002277,
-    50: .00415,
-    55: .00744,
-    60: .0133,
-    65: .02352,
-    70: .0418,
-    75: .0745,
-    80: .1319,
-    85: .2345,
-    90: .417,
-    95: .74,
-  };
-
-
-  startBtn.onclick = function() {
-    startBtn.setAttribute('disabled','disabled');
-    susresBtn.removeAttribute('disabled');
-    stopBtn.removeAttribute('disabled');
-
-    // create web audio api context
-    AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-
-    // create Oscillator and gain node
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    let channel = document.getElementById('pan')
-    let pannerOptions = { pan: pan.value };
-    const panner = new StereoPannerNode(audioCtx, pannerOptions);
-
-    // connect oscillator to gain node to speakers
-
-    oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
-
-
-    // Start oscillator
-    let freq = document.getElementById('freq').value;
-    let selectedVol = document.getElementById('volume').value;
-    let vol = leftGainDict[freq] + leftGainAdjust[selectedVol];
-    console.log(vol)
-    oscillator.type = 'sine';
-    oscillator.frequency.value = freq;
-    gainNode.gain.value = vol;
-    oscillator.start(0);
-
-
-    // report the state of the audio context to the
-    // console, when it changes
-
-    audioCtx.onstatechange = function() {
-      console.log(audioCtx.state);
-    }
-  }
-
-  // suspend/resume the audiocontext
-
-  susresBtn.onclick = function() {
-    if(audioCtx.state === 'running') {
-      audioCtx.suspend().then(function() {
-        susresBtn.textContent = 'Resume tone';
-      });
-    } else if(audioCtx.state === 'suspended') {
-      audioCtx.resume().then(function() {
-        susresBtn.textContent = 'Suspend tone';
-      });
-    }
-  }
-
-  // close the audiocontext
-
-  stopBtn.onclick = function() {
-    audioCtx.close().then(function() {
-      startBtn.removeAttribute('disabled');
-      susresBtn.setAttribute('disabled','disabled');
-      stopBtn.setAttribute('disabled','disabled');
+  let caldata;
+  const url = "./caldata.json";
+  
+  const getCalData = fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      console.log('in async');
+      return data;
     });
+
+  window.onload = async () => {
+    caldata = await getCalData;
+
+    startBtn.onclick = function() {
+      startBtn.setAttribute('disabled','disabled');
+      susresBtn.removeAttribute('disabled');
+      stopBtn.removeAttribute('disabled');
+
+      // create web audio api context
+      AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      // create Oscillator and gain node
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      let channel = document.getElementById('pan')
+      let pannerOptions = { pan: pan.value };
+      const panner = new StereoPannerNode(audioCtx, pannerOptions);
+
+      // connect oscillator to gain node to speakers
+
+      oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
+
+
+      // Start oscillator
+      let freq = document.getElementById('freq').value;
+      let selectedVol = document.getElementById('volume').value;
+      let vol = leftGainDict[freq] + caldata[selectedVol];
+      console.log(vol)
+      oscillator.type = 'sine';
+      oscillator.frequency.value = freq;
+      gainNode.gain.value = vol;
+      oscillator.start(0);
+
+
+      // report the state of the audio context to the
+      // console, when it changes
+
+      audioCtx.onstatechange = function() {
+        console.log(audioCtx.state);
+      }
+    }
+
+    // suspend/resume the audiocontext
+
+    susresBtn.onclick = function() {
+      if(audioCtx.state === 'running') {
+        audioCtx.suspend().then(function() {
+          susresBtn.textContent = 'Resume tone';
+        });
+      } else if(audioCtx.state === 'suspended') {
+        audioCtx.resume().then(function() {
+          susresBtn.textContent = 'Suspend tone';
+        });
+      }
+    }
+
+    // close the audiocontext
+
+    stopBtn.onclick = function() {
+      audioCtx.close().then(function() {
+        startBtn.removeAttribute('disabled');
+        susresBtn.setAttribute('disabled','disabled');
+        stopBtn.setAttribute('disabled','disabled');
+      });
+    }
   }
 
   function displayTime() {
