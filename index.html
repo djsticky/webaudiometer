@@ -20,7 +20,7 @@
     <label for="freq">Frequency</label>
     <select name="frequency" id="freq">
       <option value="500">500Hz</option>
-      <option value="1000">1000Hz</option>
+      <option value="1000" selected>1000Hz</option>
       <option value="2000">2000Hz</option>
       <option value="3000">3000Hz</option>
       <option value="4000">4000Hz</option>
@@ -29,8 +29,31 @@
     </select>
     <label for="panner">Ear</label>
     <select name="panner" id="pan">
-      <option value="-1">Left</option>
+      <option value="-1" selcted>Left</option>
       <option value="1">Right</option>
+    </select>
+    <label for="volume">Select dB Level</label>
+    <select name="volume" id="volume">
+      <option value="0">0dB</option>
+      <option value="5">5dB</option>
+      <option value="10">10dB</option>
+      <option value="15" selected>15dB</option>
+      <option value="20">20dB</option>
+      <option value="25">25dB</option>
+      <option value="30">30dB</option>
+      <option value="35">35dB</option>
+      <option value="40">40dB</option>
+      <option value="45">45dB</option>
+      <option value="50">50dB</option>
+      <option value="55">55dB</option>
+      <option value="60">60dB</option>
+      <option value="65">65dB</option>
+      <option value="70">70dB</option>
+      <option value="75">75dB</option>
+      <option value="80">80dB</option>
+      <option value="85">85dB</option>
+      <option value="90">90dB</option>
+      <option value="95">95dB</option>
     </select>
   </div>
   <br>
@@ -55,6 +78,41 @@
   susresBtn.setAttribute('disabled','disabled');
   stopBtn.setAttribute('disabled','disabled');
 
+
+  let leftGainDict = {
+    500: .012,
+    1000: 0,
+    2000: .9,
+    3000: .065,
+    4000: .11,
+    6000: .045,
+    8000: .31
+  };
+
+  let leftGainAdjust = {
+    0: .00005,
+    5: .00002,
+    10: .000042,
+    15: .0001,
+    20: .000127,
+    25: .000223,
+    30: .000394,
+    35: .000697,
+    40: .00125,
+    45: .002277,
+    50: .00415,
+    55: .00744,
+    60: .0133,
+    65: .02352,
+    70: .0418,
+    75: .0745,
+    80: .1319,
+    85: .2345,
+    90: .417,
+    95: .74,
+  };
+
+
   startBtn.onclick = function() {
     startBtn.setAttribute('disabled','disabled');
     susresBtn.removeAttribute('disabled');
@@ -78,11 +136,14 @@
 
     // Start oscillator
     let freq = document.getElementById('freq').value;
+    let selectedVol = document.getElementById('volume').value;
+    let vol = leftGainDict[freq] + leftGainAdjust[selectedVol];
+    console.log(vol)
     oscillator.type = 'sine';
-    oscillator.frequency.value = freq; // value in hertz
+    oscillator.frequency.value = freq;
+    gainNode.gain.value = vol;
     oscillator.start(0);
 
-    gainNode.gain.value = 0.15;
 
     // report the state of the audio context to the
     // console, when it changes
@@ -123,6 +184,10 @@
       timeDisplay.textContent = 'Current context time: No context exists.'
     }
     requestAnimationFrame(displayTime);
+  }
+
+  function calibrateTone(freq, dB) {
+    
   }
 
   displayTime();
