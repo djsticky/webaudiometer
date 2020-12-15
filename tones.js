@@ -1,26 +1,19 @@
 let audioCtx
+let caldata
 
-const startBtn = document.querySelector("button:nth-of-type(1)")
-const susresBtn = document.querySelector("button:nth-of-type(2)")
-const stopBtn = document.querySelector("button:nth-of-type(3)")
+const startBtn = document.querySelector("#start")
+const susresBtn = document.querySelector("#susres")
+const stopBtn = document.querySelector("#stop")
+const channel = document.querySelector("#pan")
+const freq = document.querySelector("#freq")
+const selecteddBHL = document.querySelector("#volume")
+const timeDisplay = document.querySelector("p, #ctx-time")
 
-const timeDisplay = document.querySelector("p")
+const url = "./caldata.json"
 
 susresBtn.setAttribute("disabled", "disabled")
 stopBtn.setAttribute("disabled", "disabled")
 
-const leftGainDict = {
-  500: 0.012,
-  1000: 0,
-  2000: 0.9,
-  3000: 0.065,
-  4000: 0.11,
-  6000: 0.045,
-  8000: 0.31,
-}
-
-let caldata
-const url = "./caldata.json"
 
 // Fetch calibration data from json file
 const getCalData = fetch(url)
@@ -44,8 +37,7 @@ window.onload = async () => {
     // Create oscillator, panner and gain node
     const oscillator = audioCtx.createOscillator()
     const gainNode = audioCtx.createGain()
-    const channel = document.getElementById("pan").value
-    const pannerOptions = { pan: channel}
+    const pannerOptions = { pan: channel.value}
     const panner = new StereoPannerNode(audioCtx, pannerOptions)
 
     // Connect oscillator to gain node to speakers
@@ -53,17 +45,15 @@ window.onload = async () => {
     oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination)
 
     // Setup oscillator
-    const freq = document.getElementById("freq").value
-    const selectedVol = document.getElementById("volume").value
-    const vol = leftGainDict[freq] + caldata.left.left1000Hz[selectedVol]
+    const gain = setGain(channel.value, freq.value, selecteddBHL.value, caldata)
 
-    console.log("Selected Frequency: " + freq)
-    console.log("Selected Volume: " + selectedVol)
-    console.log("Current gain setting: " + vol)
+    console.log("Selected Frequency: " + freq.value)
+    console.log("Selected Volume: " + selecteddBHL.value)
+    console.log("Current gain setting: " + gain)
 
     oscillator.type = "sine"
-    oscillator.frequency.value = freq
-    gainNode.gain.value = vol
+    oscillator.frequency.value = freq.value
+    gainNode.gain.value = gain
 
     // Start oscillator
     oscillator.start(0)
@@ -93,11 +83,26 @@ window.onload = async () => {
   // Close the audiocontext
 
   stopBtn.onclick = function () {
+    //gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05)
     audioCtx.close().then(function () {
-      startBtn.removeAttribute("disabled")
-      susresBtn.setAttribute("disabled", "disabled")
-      stopBtn.setAttribute("disabled", "disabled")
-    })
+    startBtn.removeAttribute("disabled")
+    susresBtn.setAttribute("disabled", "disabled")
+    stopBtn.setAttribute("disabled", "disabled")
+   })
+  }
+}
+
+function setGain(channel, freq, selecteddB, calValues)  {
+    // This seems terrable, how do better?
+    // Finding left or right channel, filtering to selected frequency which returns an array
+    // Using shift() to return the first (and only) element which is a JSON object
+    // Selecting the appropriate gain offset for the selected dB
+  if(channel === "-1"){
+    let channelValues = calValues.left.filter(x => x.freq === "left" + freq + "Hz" ).shift()
+    return channelValues[selecteddB]
+  } else {
+    let channelValues = calValues.right.filter(x => x.freq === "right" + freq + "Hz" ).shift()
+    return channelValues[selecteddB]
   }
 }
 
