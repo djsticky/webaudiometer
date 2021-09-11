@@ -14,6 +14,8 @@ const url = "./caldata.json"
 susresBtn.setAttribute("disabled", "disabled")
 stopBtn.setAttribute("disabled", "disabled")
 
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 // Fetch calibration data from json file
 const getCalData = fetch(url)
   .then((r) => r.json())
@@ -24,39 +26,13 @@ const getCalData = fetch(url)
 window.onload = async () => {
   caldata = await getCalData
 
-  startBtn.onclick = function () {
-    startBtn.setAttribute("disabled", "disabled")
-    susresBtn.removeAttribute("disabled")
-    stopBtn.removeAttribute("disabled")
-
-    // Create web audio api context
-    AudioContext = window.AudioContext || window.webkitAudioContext
-    audioCtx = new AudioContext()
-
-    // Create oscillator, panner and gain node
-    const oscillator = audioCtx.createOscillator()
-    const gainNode = audioCtx.createGain()
-    const pannerOptions = { pan: channel.value }
-    const panner = new StereoPannerNode(audioCtx, pannerOptions)
-
-    // Connect oscillator to gain node to speakers
-
-    oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination)
-
-    // Setup oscillator
-    const gain = setGain(channel.value, freq.value, selecteddBHL.value, caldata)
-
-    console.log("Selected Frequency: " + freq.value)
-    console.log("Selected Volume: " + selecteddBHL.value)
-    console.log("Current gain setting: " + gain)
-
-    oscillator.type = "sine"
-    oscillator.frequency.value = freq.value
-    gainNode.gain.value = gain
-
-    // Start oscillator
-    oscillator.start(0)
-  }
+  // startBtn.onclick = async function () {
+  //   for (let i = 0; i < 3; i++){
+  //     playTone()
+  //     await delay(300)
+  //   }
+  // }
+  startBtn.onclick = playTone
 
   // Suspend/resume the audiocontext
 
@@ -110,6 +86,41 @@ function displayTime() {
     timeDisplay.textContent = "Current context time: No context exists."
   }
   requestAnimationFrame(displayTime)
+}
+
+async function playTone() {
+  startBtn.setAttribute("disabled", "disabled")
+  susresBtn.removeAttribute("disabled")
+  stopBtn.removeAttribute("disabled")
+
+  // Create web audio api context
+  AudioContext = window.AudioContext || window.webkitAudioContext
+  audioCtx = new AudioContext()
+
+  // Create oscillator, panner and gain node
+  const oscillator = audioCtx.createOscillator()
+  const gainNode = audioCtx.createGain()
+  const pannerOptions = { pan: channel.value }
+  const panner = new StereoPannerNode(audioCtx, pannerOptions)
+
+  // Connect oscillator to gain node to speakers
+
+  oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination)
+
+  // Setup oscillator
+  const gain = setGain(channel.value, freq.value, selecteddBHL.value, caldata)
+
+  console.log("Selected Frequency: " + freq.value)
+  console.log("Selected Volume: " + selecteddBHL.value)
+  console.log("Current gain setting: " + gain)
+
+  oscillator.type = "sine"
+  oscillator.frequency.value = freq.value
+  gainNode.gain.value = gain
+
+  // Start oscillator
+  oscillator.start()
+  //oscillator.stop(audioCtx.currentTime + .3)
 }
 
 displayTime()
